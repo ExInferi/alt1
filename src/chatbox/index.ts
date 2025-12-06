@@ -51,21 +51,26 @@ const chatmap: { [key in keyof typeof chatimgs.raw]: string } = {
 	group: "gc",
 	groupironman: "gimc",
 	privateRecent: "pc", // needs to be last to not mess with the buf
-	
 }
 const chatbadges = webpackImages({
-	vip: require("./imgs/badgevip.data.png"),
-	pmod: require("./imgs/badgepmod.data.png"),
-	pmodvip: require("./imgs/badgepmodvip.data.png"),
-	broadcast_gold: require("./imgs/badge_broadcast_gold.data.png"),
-	broadcast_silver: require("./imgs/badge_broadcast_silver.data.png"),
-	broadcast_bronze: require("./imgs/badge_broadcast_bronze.data.png"),
-	broadcast_death: require("./imgs/badge_broadcast_death.data.png"),
-	ironman: require("./imgs/badgeironman.data.png"),
-	hcim: require("./imgs/badgehcim.data.png"),
-	rgim: require("./imgs/badgergim.data.png"),
-	gim: require("./imgs/badgegim.data.png"),
-	chatlink: require("./imgs/chat_link.data.png"),
+	vip: require("./imgs/badges/vip.data.png"),
+	pmod: require("./imgs/badges/pmod.data.png"),
+	pmodvip: require("./imgs/badges/pmodvip.data.png"),
+	broadcast_gold: require("./imgs/badges/broadcast_gold.data.png"),
+	broadcast_silver: require("./imgs/badges/broadcast_silver.data.png"),
+	broadcast_bronze: require("./imgs/badges/broadcast_bronze.data.png"),
+	broadcast_death: require("./imgs/badges/broadcast_death.data.png"),
+	ironman: require("./imgs/badges/ironman.data.png"),
+	hcim: require("./imgs/badges/hcim.data.png"),
+	rgim: require("./imgs/badges/rgim.data.png"),
+	gim: require("./imgs/badges/gim.data.png"),
+	chatlink: require("./imgs/badges/link.data.png"),
+
+	league_steel: require("./imgs/badges/league_steel.data.png"),
+	league_mith: require("./imgs/badges/league_mith.data.png"),
+	league_addy: require("./imgs/badges/league_addy.data.png"),
+	league_rune: require("./imgs/badges/league_rune.data.png"),
+	league_dragon: require("./imgs/badges/league_dragon.data.png"),
 });
 
 const badgemap: { [key in keyof typeof chatbadges.raw]: string } = {
@@ -81,6 +86,11 @@ const badgemap: { [key in keyof typeof chatbadges.raw]: string } = {
 	rgim: "\u328F",//CIRCLED IDEOGRAPH EARTH
 	gim: "\u3289",//CIRCLED IDEOGRAPH TEN
 	chatlink: "\u{1F517}",//LINK SYMBOL
+	league_steel: "\u{1F3C6}",//TROPHY
+	league_mith: "\u{1F3C6}",//TROPHY
+	league_addy: "\u{1F3C6}",//TROPHY
+	league_rune: "\u{1F3C6}",//TROPHY
+	league_dragon: "\u{1F3C6}",//TROPHY
 }
 
 export const defaultcolors = [
@@ -359,9 +369,9 @@ export default class ChatBoxReader {
 			var data = img.toData(loc.x + 19, loc.y, 87 + (107 - 102), 10);
 			for (let chat in chatimgs.raw) {
 				let cimg = chatimgs.raw[chat];
-	
+
 				if (data.pixelCompare(cimg, 0, 1) != Infinity || data.pixelCompare(cimg, (107 - 102), 1) != Infinity) {
-				botlefts.push(loc);
+					botlefts.push(loc);
 				}
 				//i don't even know anymore some times the bubble is 1px higher (i think it might be java related)
 				else if (data.pixelCompare(cimg, 0, 0) != Infinity || data.pixelCompare(cimg, (107 - 102), 0) != Infinity) {
@@ -558,7 +568,8 @@ let defaultforwardnudges: ReadLineNudge[] = [
 	{
 		//fix for "[" first char
 		match: /^$/,
-		name: "timestampopen", fn: (ctx) => {
+		name: "timestampopen",
+		fn: (ctx) => {
 			let timestampopen = OCR.readChar(ctx.imgdata, ctx.font, [255, 255, 255], ctx.rightx, ctx.baseliney, false, false);
 			if (timestampopen?.chr == "[") {
 				ctx.addfrag({ color: [255, 255, 255], index: -1, text: "[", xstart: ctx.rightx, xend: ctx.rightx + timestampopen.basechar.width });
@@ -567,12 +578,14 @@ let defaultforwardnudges: ReadLineNudge[] = [
 		}
 	},
 	{
-		match: /(\] ?|news: ?|^)$/i,
-		name: "badge", fn: checkchatbadge
+		match: /(\]( [^\x00-\x7F]?)*|news: ?|^)$/i,
+		name: "badge",
+		fn: checkchatbadge
 	},
 	{
 		match: /.*/,
-		name: "body", fn: ctx => {
+		name: "body",
+		fn: ctx => {
 			var data = OCR.readLine(ctx.imgdata, ctx.font, ctx.colors, ctx.rightx, ctx.baseliney, true, false);
 			if (data.text) {
 				data.fragments.forEach(f => ctx.addfrag(f));
@@ -582,7 +595,8 @@ let defaultforwardnudges: ReadLineNudge[] = [
 	},
 	{
 		match: /\[[\w: ]+$/,
-		name: "timestampclose", fn: ctx => {
+		name: "timestampclose",
+		fn: ctx => {
 			let closebracket = OCR.readChar(ctx.imgdata, ctx.font, [255, 255, 255], ctx.rightx, ctx.baseliney, false, false);
 			if (closebracket?.chr == "]") {
 				ctx.addfrag({ color: [255, 255, 255], text: "] ", index: -1, xstart: ctx.rightx, xend: ctx.rightx + closebracket.basechar.width + ctx.font.spacewidth });
@@ -592,7 +606,8 @@ let defaultforwardnudges: ReadLineNudge[] = [
 	},
 	{
 		match: /(^|\]|:)( ?)$/i,
-		name: "startline", fn: (ctx, match) => {
+		name: "startline",
+		fn: (ctx, match) => {
 			let addspace = !match[2];
 			let x = ctx.rightx + (addspace ? ctx.font.spacewidth : 0);
 			let best: OCR.ReadCharInfo | null = null;
@@ -617,7 +632,8 @@ let defaultforwardnudges: ReadLineNudge[] = [
 	},
 	{
 		match: /\w$/,
-		name: "whitecolon", fn: ctx => {
+		name: "whitecolon",
+		fn: ctx => {
 			let startx = ctx.rightx;
 			let colonchar = OCR.readChar(ctx.imgdata, ctx.font, [255, 255, 255], startx, ctx.baseliney, false, true);
 			if (colonchar?.chr == ":") {
@@ -630,12 +646,14 @@ let defaultforwardnudges: ReadLineNudge[] = [
 
 let defaultbackwardnudges: ReadLineNudge[] = [
 	{
-		match: /^(news: |[\w\-_]{1,12}: )/i,
-		name: "badge", fn: checkchatbadge
+		match: /^(news: |[\w\-_]{1,12}(): )/i,
+		name: "badge",
+		fn: checkchatbadge
 	},
 	{
 		match: /.*/,
-		name: "body", fn: ctx => {
+		name: "body",
+		fn: ctx => {
 			var data = OCR.readLine(ctx.imgdata, ctx.font, ctx.colors, ctx.leftx, ctx.baseliney, false, true);
 			if (data.text) {
 				data.fragments.reverse().forEach(f => ctx.addfrag(f));
@@ -645,7 +663,8 @@ let defaultbackwardnudges: ReadLineNudge[] = [
 	},
 	{
 		match: /^\w/,
-		name: "whitecolon", fn: ctx => {
+		name: "whitecolon",
+		fn: ctx => {
 			let startx = ctx.leftx - ctx.font.spacewidth;
 			let colonchar = OCR.readChar(ctx.imgdata, ctx.font, [255, 255, 255], startx, ctx.baseliney, false, true);
 			if (colonchar?.chr == ":") {
