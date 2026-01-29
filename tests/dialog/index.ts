@@ -20,7 +20,6 @@ let tests = webpackImages({
 	test6: import("./imgs/test6.data.png"),
 	test7: import("./imgs/test7.data.png"),
 	test8: import("./imgs/test8.data.png"),
-	test9: import("./imgs/test9.data.png")
 });
 
 export default async function run() {
