@@ -89,10 +89,10 @@ export default class DialogReader {
 	readTitle(imgref: ImgRef) {
 		if (!this.pos) { throw new Error("position not found yet"); }
 		var buf = imgref.toData(this.pos.x, this.pos.y, this.pos.width, 32);
-		//somehow y coord can change, 19 for "choose and option:" 18 for npc names
-		var pos = OCR.findChar(buf, fontheavy, [255, 203, 5], Math.round(this.pos.width / 2) - 10, 16, 20, 4);
+		//somehow y coord can change, 15 for "choose and option:" 18 for npc names
+		var pos = OCR.findChar(buf, fontheavy, [240, 190, 121], Math.round(this.pos.width / 2) - 10, 12, 20, 8);
 		if (!pos) { return ""; }
-		var read = OCR.readSmallCapsBackwards(buf, fontheavy, [[255, 203, 5]], Math.round(this.pos.width / 2) - 10, pos.y, 150, 1);
+		var read = OCR.readSmallCapsBackwards(buf, fontheavy, [[240, 190, 121]], Math.round(this.pos.width / 2) - 10, pos.y, 150, 1);
 		return read.text.toLowerCase();//normalize case since we don't actually know the original
 	}
 
@@ -168,12 +168,12 @@ export default class DialogReader {
 		if (!locs) { locs = this.findOptions(imgref); }
 
 		var bgcol = [150, 135, 105];
-		var fontcol: OCR.ColortTriplet = this.pos.legacy ? [255, 255, 255] : [174, 208, 224];
+		var fontcol: OCR.ColortTriplet = this.pos.legacy ? [255, 255, 255] : [227, 215, 207];
 
 		var r: DialogButton[] = [];
 		for (var a = 0; a < locs.length; a++) {
 			var dx = locs[a].x + 30;
-			var dy = locs[a].y + 6;
+			var dy = locs[a].y + 7;
 			var checkline = imgref.toData(dx, dy, Math.min(500, imgref.width - a), 1);
 			var row: typeof r[number] | null = null;
 			for (var x = 0; x < checkline.width; x++) {
@@ -186,9 +186,9 @@ export default class DialogReader {
 					}
 				} else if (coldiff(checkline.data[i], checkline.data[i + 1], checkline.data[i + 2], fontcol[0], fontcol[1], fontcol[2]) < 380) {
 					var text = "";
-					var chr = OCR.findChar(buf, fontmono, fontcol, dx + x - 5 - imgref.x, dy + 3 - imgref.y, 30, 1);
+					var chr = OCR.findChar(buf, fontmono2, fontcol, dx + x - 5 - imgref.x, dy + 3 - imgref.y, 30, 1);
 					if (chr) {
-						var read = OCR.readLine(buf, fontmono, fontcol, chr.x, chr.y, true, true);
+						var read = OCR.readLine(buf, fontmono2, fontcol, chr.x, chr.y, true, true);
 						var text = read.text;
 					}
 					row = { text: text, x: dx + x, y: dy, width: 200, buttonx: dx - 31, hover: !!locs[a].hover, active: locs[a].active };
