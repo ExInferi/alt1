@@ -8,9 +8,15 @@ globalThis.ImageDetect = a1lib.ImageDetect;
 globalThis.a1lib = a1lib;
 
 let tests = webpackImages({
-	nis1: import("./imgs/nis1.data.png"),
-	nis2: import("./imgs/nis2.data.png"),
-	legacy1: import("./imgs/legacy1.data.png"),
+	test1: import("./imgs/test1.data.png"),
+	test2: import("./imgs/test2.data.png"),
+	test3: import("./imgs/test3.data.png"),
+	test4: import("./imgs/test4.data.png"),
+	test5: import("./imgs/test5.data.png"),
+	test6: import("./imgs/test6.data.png"),
+	test7: import("./imgs/test7.data.png"),
+	test8: import("./imgs/test8.data.png"),
+	test9: import("./imgs/test9.data.png"),
 });
 
 export default async function run() {
