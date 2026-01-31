@@ -83,6 +83,10 @@
 			"alt1-source": "./src/tooltip/index.ts",
 			"default": "./dist/tooltip/index.js"
 		},
+		"./xpcounter": {
+			"alt1-source": "./src/xpcounter/index.ts",
+			"default": "./dist/xpcounter/index.js"
+		},
 		"./fonts/*": {
 			"alt1-source": "./src/fonts/*",
 			"default": "./dist/fonts/*"
