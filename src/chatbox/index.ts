@@ -8,13 +8,13 @@ type FontSetting = { name: string, lineheight: number, badgey: number, dy: numbe
 let chatfont = require("../fonts/aa_8px.fontmeta.json");
 
 let fonts: FontSetting[] = [
-	{ name: "10pt", lineheight: 14, badgey: -9, dy: 2, def: require("../fonts/chatbox/10pt.fontmeta.json") },
-	{ name: "12pt", lineheight: 16, badgey: -9, dy: -1, def: require("../fonts/chatbox/12pt.fontmeta.json") },
+	{ name: "10pt", lineheight: 14, badgey: -9, dy: -2, def: require("../fonts/chatbox/10pt.fontmeta.json") },
+	{ name: "12pt", lineheight: 16, badgey: -9, dy: -3, def: require("../fonts/chatbox/12pt.fontmeta.json") },
 	{ name: "14pt", lineheight: 18, badgey: -10, dy: -3, def: require("../fonts/chatbox/14pt.fontmeta.json") },
-	{ name: "16pt", lineheight: 21, badgey: -10, dy: -6, def: require("../fonts/chatbox/16pt.fontmeta.json") },
-	{ name: "18pt", lineheight: 23, badgey: -11, dy: -8, def: require("../fonts/chatbox/18pt.fontmeta.json") },
-	{ name: "20pt", lineheight: 25, badgey: -11, dy: -11, def: require("../fonts/chatbox/20pt.fontmeta.json") },
-	{ name: "22pt", lineheight: 27, badgey: -12, dy: -13, def: require("../fonts/chatbox/22pt.fontmeta.json") },
+	{ name: "16pt", lineheight: 21, badgey: -10, dy: -4, def: require("../fonts/chatbox/16pt.fontmeta.json") },
+	{ name: "18pt", lineheight: 23, badgey: -11, dy: -4, def: require("../fonts/chatbox/18pt.fontmeta.json") },
+	{ name: "20pt", lineheight: 25, badgey: -11, dy: -5, def: require("../fonts/chatbox/20pt.fontmeta.json") },
+	{ name: "22pt", lineheight: 27, badgey: -12, dy: -5, def: require("../fonts/chatbox/22pt.fontmeta.json") },
 ];
 
 const imgs = webpackImages({
@@ -32,14 +32,14 @@ const imgs = webpackImages({
 });
 
 const chatimgs = webpackImages({
-	public: require("./imgs/public.data.png"),
-	private: require("./imgs/private.data.png"),
-	privateRecent: require("./imgs/privateRecent.data.png"),
-	clan: require("./imgs/clan.data.png"),
+	public: require("./imgs/publicchat.data.png"),
+	private: require("./imgs/privatechat.data.png"),
+	clan: require("./imgs/clanchat.data.png"),
 	guestclan: require("./imgs/guestclan.data.png"),
-	friends: require("./imgs/friends.data.png"),
-	group: require("./imgs/group.data.png"),
-	groupironman: require("./imgs/groupironman.data.png"),
+	privateRecent: require("./imgs/privateRecent.data.png"),
+	friends: require("./imgs/friendschat.data.png"),
+	group: require("./imgs/groupchat.data.png"),
+	// groupironman missing since mtx removal
 });
 
 const chatmap: { [key in keyof typeof chatimgs.raw]: string } = {
@@ -49,7 +49,7 @@ const chatmap: { [key in keyof typeof chatimgs.raw]: string } = {
 	guestclan: "gcc",
 	friends: "fc",
 	group: "gc",
-	groupironman: "gimc",
+	// groupironman: "gimc",
 	privateRecent: "pc", // needs to be last to not mess with the buf
 }
 const chatbadges = webpackImages({
@@ -366,33 +366,37 @@ export default class ChatBoxReader {
 			//107,2 press enter to chat
 			//102,2 click here to chat
 			// biggest chat size is 83 + 4 pixels
-			var data = img.toData(loc.x + 19, loc.y, 87 + (107 - 102), 10);
+			var data = img.toData(loc.x + 19, loc.y, 87 + (107 - 102), 12);
+			var matched = false;
 			for (let chat in chatimgs.raw) {
 				let cimg = chatimgs.raw[chat];
 
 				if (data.pixelCompare(cimg, 0, 1) != Infinity || data.pixelCompare(cimg, (107 - 102), 1) != Infinity) {
 					botlefts.push(loc);
+					matched = true;
 				}
 				//i don't even know anymore some times the bubble is 1px higher (i think it might be java related)
 				else if (data.pixelCompare(cimg, 0, 0) != Infinity || data.pixelCompare(cimg, (107 - 102), 0) != Infinity) {
 					loc.y -= 1;
 					botlefts.push(loc);
+					matched = true;
 				}
-				//active chat
+			}
+			//active chat
+			if (!matched) {
+				var pixel = img.toData(loc.x, loc.y - 5, 1, 1);
+				var pixel2 = img.toData(loc.x, loc.y - 4, 1, 1);
+				if (pixel.data[0] == 255 && pixel.data[1] == 255 && pixel.data[2] == 255) {
+					loc.y -= 1;
+					botlefts.push(loc);
+				}
+				//the weird offset again
+				else if (pixel2.data[0] == 255 && pixel2.data[1] == 255 && pixel2.data[2] == 255) {
+					loc.y -= 2;
+					botlefts.push(loc);
+				}
 				else {
-					var pixel = img.toData(loc.x, loc.y - 5, 1, 1);
-					var pixel2 = img.toData(loc.x, loc.y - 4, 1, 1);
-					if (pixel.data[0] == 255 && pixel.data[1] == 255 && pixel.data[2] == 255) {
-						botlefts.push(loc);
-					}
-					//the weird offset again
-					else if (pixel2.data[0] == 255 && pixel2.data[1] == 255 && pixel2.data[2] == 255) {
-						loc.y -= 1;
-						botlefts.push(loc);
-					}
-					else {
-						//console.log("unlinked quickchat bubble " + JSON.stringify(loc));
-					}
+					//console.log("unlinked quickchat bubble " + JSON.stringify(loc));
 				}
 			}
 		});
@@ -443,8 +447,8 @@ export default class ChatBoxReader {
 		groups.forEach(group => {
 			// rect.x + 21 is the offset after chat bubble
 			// buff & comp needs to be different for recent private chat as it doesn't have the chat bubble
-			let buf = img.toData(group.rect.x + 19, group.rect.y + group.rect.height, 150, 10);
-			let pbuf = img.toData(group.rect.x, group.rect.y + group.rect.height, 150, 10);
+			let buf = img.toData(group.rect.x + 19, group.rect.y + group.rect.height, 150, 12);
+			let pbuf = img.toData(group.rect.x, group.rect.y + group.rect.height, 150, 12);
 
 			for (let chat in chatmap) {
 				let cimg = chatimgs.raw[chat];
@@ -463,7 +467,7 @@ export default class ChatBoxReader {
 				if (pos.length == 0) { pos = img.findSubimage(imgs.gameoff, Math.max(0, group.rect.x - 300), group.rect.y - 22, 310, 16); }
 				if (pos.length != 0) {
 					group.leftfound = true;
-					var d = group.rect.x - pos[0].x;
+					var d = group.rect.x - pos[0].x + 2;
 					group.rect.x -= d;
 					group.rect.width += d;
 				}
@@ -473,7 +477,7 @@ export default class ChatBoxReader {
 
 
 			group.line0x = 0;
-			group.line0y = group.rect.height - 16;//15;//12;//- 15;//-11//- 9;//-10 before mobile interface update
+			group.line0y = group.rect.height - 12;// 16;//15;//12;//- 15;//-11//- 9;//-10 before mobile interface update
 
 			if (group.leftfound) { group.timestamp = this.checkTimestamp(img, group); }
 			if (mainbox == null || group.type == "main") { mainbox = group; }
