@@ -2,7 +2,7 @@ import * as a1lib from "alt1/base";
 import * as OCR from "alt1/ocr";
 import { webpackImages, simpleCompare, findSubbuffer, ImgRef, ImgRefBind, mixColor } from "alt1/base";
 
-var chatfont = require("alt1/fonts/aa_8px.fontmeta.json");
+var chatfont = require("alt1/fonts/chatbox/12pt.fontmeta.json");
 
 var imgs = webpackImages({
 	skills: require("./imgs/skills.data.png")
@@ -60,6 +60,7 @@ export default class XpcounterReader {
 				var xpcircle = false;
 				for (var xx = 0; xx < 10; xx++) {
 					var p = buffer.getPixel(pos.x + 30 + xx, pos.y + 8);
+					if (p[0] == 240 && p[1] == 190 && p[2] == 121) { statlist = true; break; }
 					if (p[0] == 255 && p[1] == 140 && p[2] == 0) { statlist = true; break; }
 					if (p[0] == 255 && p[1] == 203 && p[2] == 5) { statlist = true; break; }
 				}
@@ -162,13 +163,12 @@ export default class XpcounterReader {
 	readValues(img?: ImgRef) {
 		if (!this.pos) { return null; }
 		if (!img) { img = a1lib.captureHold(this.pos.x, this.pos.y, this.pos.w, this.pos.h); }
-
-		let data = img.toData();
+		var buf = img.toData(this.pos.x, this.pos.y, this.pos.w, this.pos.h);
 
 		this.values = [];
 		var abbr = false;
 		for (var i = 0; i < this.pos.rows; i++) {
-			var obj = OCR.readLine(data, chatfont, [255, 255, 255], 30, i * 27 + 17, true, false);
+			var obj = OCR.readLine(buf, chatfont, [255, 255, 255], 30, i * 27 + 18, true, false);
 			if (!obj) { this.values[i] = -1; continue; }
 
 			var m = 1;

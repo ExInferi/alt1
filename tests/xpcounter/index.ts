@@ -41,7 +41,12 @@ async function dotest(testid: string, reader: XpcounterReader, img: ImgRef) {
 	t = performance.now();
 	let res = [] as any[];
 	for (let a = 0; a < 1; a++) {
-		res.push(reader.read(img));
+		reader.read(img);
+		let resobj = {};
+		for (let i = 0; i < reader.skills.length; i++) {
+			resobj[reader.skills[i]] = reader.values[i];
+		}
+		res.push(resobj);
 	}
 	console.log(performance.now() - t);
 	console.log(res[0]);
