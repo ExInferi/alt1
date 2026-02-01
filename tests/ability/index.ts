@@ -12,6 +12,7 @@ let tests = webpackImages({
 	hor: import("./imgs/hor.data.png"),
 	vert: import("./imgs/vert.data.png"),
 	tall: import("./imgs/tall.data.png"),
+	alternate: import("./imgs/alternate.data.png"),
 });
 
 

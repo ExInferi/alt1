@@ -2,7 +2,7 @@ import * as a1lib from "alt1/base";
 import { webpackImages, ImgRef } from "alt1/base";
 import * as OCR from "alt1/ocr";
 
-var chatfont = require("../fonts/aa_8px.fontmeta.json");
+var chatfont = require("../fonts/chatbox/12pt.fontmeta.json");
 
 var imgs = webpackImages({
 	dren: require("./actionbarimgs/dren.data.png"),
@@ -43,10 +43,11 @@ export default class ActionbarReader {
 	pos: { x: number, y: number, layout: Layout } | null = null;
 
 	static layouts: { [name: string]: Layout } = {
-		mainflat: { hp: { x: 0, y: 0 }, dren: { x: 119, y: 0 }, pray: { x: 238, y: 0 }, sum: { x: 357, y: 0 }, width: 470, height: 25, hor: true, barlength: 80, type: "mainflat" },
-		mainhor: { hp: { x: 0, y: 0 }, dren: { x: 102, y: 0 }, pray: { x: 16, y: 22 }, sum: { x: 118, y: 22 }, width: 210, height: 45, hor: true, barlength: 62, type: "mainhor" },
-		mainver: { hp: { x: 0, y: 0 }, dren: { x: 0, y: 100 }, pray: { x: 22, y: 16 }, sum: { x: 22, y: 116 }, width: 35, height: 210, hor: false, barlength: 62, type: "mainver" },
-		maintower: { hp: { x: 0, y: 0 }, dren: { x: 0, y: 119 }, pray: { x: 0, y: 238 }, sum: { x: 0, y: 357 }, width: 20, height: 465, hor: false, barlength: 80, type: "maintower" }
+
+		mainflat: { "hp": { "x": 0, "y": 0 }, "dren": { "x": 126, "y": 0 }, "pray": { "x": 252, "y": 0 }, "sum": { "x": 378, "y": 0 }, width: 470, height: 25, hor: true, barlength: 80, type: "mainflat" },
+		mainhor: { "hp": { "x": 0, "y": 0 }, "dren": { "x": 122, "y": 0 }, "pray": { "x": 0, "y": 24 }, "sum": { "x": 122, "y": 24 }, width: 210, height: 45, hor: true, barlength: 62, type: "mainhor" },
+		mainver: { "hp": { "x": 0, "y": 0 }, "dren": { "x": 0, "y": 114 }, "pray": { "x": 24, "y": 0 }, "sum": { "x": 24, "y": 114 }, width: 35, height: 210, hor: false, barlength: 62, type: "mainver" },
+		maintower: { "hp": { "x": 0, "y": 0 }, "dren": { "x": 0, "y": 122 }, "pray": { "x": 0, "y": 244 }, "sum": { "x": 0, "y": 366 }, width: 20, height: 465, hor: false, barlength: 80, type: "maintower" }
 	};
 
 	find(img?: ImgRef) {
@@ -90,14 +91,18 @@ export default class ActionbarReader {
 		var dx = this.pos.x - bufx!;
 		var dy = this.pos.y - bufy!;
 
-		var hptext = this.readBarNumber(buffer, this.pos.layout.hp.x + dx, this.pos.layout.hp.y + dy, this.pos.layout.hor);
-		var drentext = this.readBarNumber(buffer, this.pos.layout.dren.x + dx, this.pos.layout.dren.y + dy, this.pos.layout.hor);
-		var sumtext = this.readBarNumber(buffer, this.pos.layout.sum.x + dx, this.pos.layout.sum.y + dy, this.pos.layout.hor);
-		var praytext = this.readBarNumber(buffer, this.pos.layout.pray.x + dx, this.pos.layout.pray.y + dy, this.pos.layout.hor);
-		var hpbar = this.readBar(buffer, this.pos.layout.hp.x + dx, this.pos.layout.hp.y + dy, this.pos.layout.hor);
-		var drenbar = this.readBar(buffer, this.pos.layout.dren.x + dx, this.pos.layout.dren.y + dy, this.pos.layout.hor);
-		var praybar = this.readBar(buffer, this.pos.layout.pray.x + dx, this.pos.layout.pray.y + dy, this.pos.layout.hor);
-		var sumbar = this.readBar(buffer, this.pos.layout.sum.x + dx, this.pos.layout.sum.y + dy, this.pos.layout.hor);
+
+		var textdy = (this.pos.layout.type == "mainhor" ? dy + 1 : dy);
+		var bardy = (this.pos.layout.type == "mainhor" ? dy - 1 : dy);
+
+		var hptext = this.readBarNumber(buffer, this.pos.layout.hp.x + dx, this.pos.layout.hp.y + textdy, this.pos.layout.hor);
+		var drentext = this.readBarNumber(buffer, this.pos.layout.dren.x + dx, this.pos.layout.dren.y + textdy, this.pos.layout.hor);
+		var sumtext = this.readBarNumber(buffer, this.pos.layout.sum.x + dx, this.pos.layout.sum.y + textdy, this.pos.layout.hor);
+		var praytext = this.readBarNumber(buffer, this.pos.layout.pray.x + dx, this.pos.layout.pray.y + textdy, this.pos.layout.hor);
+		var hpbar = this.readBar(buffer, this.pos.layout.hp.x + dx, this.pos.layout.hp.y + bardy, this.pos.layout.hor);
+		var drenbar = this.readBar(buffer, this.pos.layout.dren.x + dx, this.pos.layout.dren.y + bardy, this.pos.layout.hor);
+		var praybar = this.readBar(buffer, this.pos.layout.pray.x + dx, this.pos.layout.pray.y + bardy, this.pos.layout.hor);
+		var sumbar = this.readBar(buffer, this.pos.layout.sum.x + dx, this.pos.layout.sum.y + bardy, this.pos.layout.hor);
 
 		return {
 			hp: (hptext ? hptext.cur / hptext.max : hpbar),
@@ -114,9 +119,14 @@ export default class ActionbarReader {
 
 	readBarNumber(buffer: ImageData, x: number, y: number, hor: boolean) {
 		if (hor) {
-			var line = OCR.readLine(buffer, chatfont, [255, 255, 255], x + 22, y + 5, true, false);
-			var m = line.text.match(/^(\d+)(\/(\d+)|%)$/);
-			if (m) { return { cur: +m[1], max: (m[2] == "%" ? 100 : +m[3]) }; }
+			var line = OCR.readLine(buffer, chatfont, [255, 255, 255], x + 22, y + 6, true, false);
+			var m = line.text.match(/^([\d,]+)(\/([\d,]+)|%)$/);
+			if (m) {
+				return {
+					cur: +m[1].replace(/,/g, ""),
+					max: (m[2] == "%" ? 100 : +m[3].replace(/,/g, ""))
+				};
+			}
 		}
 		return null;
 	}
@@ -137,9 +147,9 @@ export default class ActionbarReader {
 	static getCurrentLayoutData(img: ImgRef) {
 		img ??= a1lib.captureHoldFullRs();
 		var matches = {
-			hp: a1lib.findSubimage(img, imgs.lifepoints)[0],
-			dren: a1lib.findSubimage(img, imgs.dren)[0],
-			pray: a1lib.findSubimage(img, imgs.prayer)[0],
+			hp: a1lib.findSubimage(img, imgs.lifepoints)[0] ?? a1lib.findSubimage(img, imgs.lifepointspoison)[0],
+			dren: a1lib.findSubimage(img, imgs.dren)[0] ?? a1lib.findSubimage(img, imgs.drenretal)[0],
+			pray: a1lib.findSubimage(img, imgs.prayer)[0] ?? a1lib.findSubimage(img, imgs.prayeron)[0],
 			sum: a1lib.findSubimage(img, imgs.sumpoints)[0]
 		};
 		var layout = {
