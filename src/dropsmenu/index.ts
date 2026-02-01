@@ -18,6 +18,8 @@ var fontcolors: OCR.ColortTriplet[] = [
 	[255, 128, 0]//orange (1b+ and boss pets)
 ];
 
+var titlecolor: OCR.ColortTriplet = [227, 215, 207];
+
 export default class DropsMenuReader {
 	pos = null as a1lib.RectLike | null;
 	items = [];
@@ -35,6 +37,8 @@ export default class DropsMenuReader {
 		if (rpos.length == 0) { return null; }
 		var width = rpos[0].x - left + 15;
 
+		// TODO this no longer works after 2026 rebrand for non-opaque interfaces, the scrollbar is transparent now
+		// could use the same technique on the "drops" text, but that is more fragile
 		let scrollrect = img.toData(left + width, 0, 10, bot);
 		let scrolltops: { y: number, rmse: number }[] = [];
 		for (let y = bot - imgs.scrolltop.height; y >= 0; y--) {
@@ -50,11 +54,13 @@ export default class DropsMenuReader {
 
 		let top = besttop.y - 4;
 		let titlebar = img.toData(left, top, width, 18);
-		let quantitymatch = OCR.findReadLine(titlebar, font, [[143, 172, 187]], width - 100, 12, 70, 1);
+		let quantitymatch = OCR.findReadLine(titlebar, font, [titlecolor], width - 100, 12, 70, 1);
 		if (quantitymatch.text != "Quantity") { return null; }
 
 		var p = { x: left, y: top, height: bot - top, width: width };
-		alt1.overLayRect(a1lib.mixColor(255, 255, 255), p.x, p.y, p.width, p.height, 5000, 1);
+		if (window.alt1) {
+			alt1.overLayRect(a1lib.mixColor(255, 255, 255), p.x, p.y, p.width, p.height, 5000, 1);
+		}
 		this.pos = p;
 		return p;
 	}
@@ -65,7 +71,7 @@ export default class DropsMenuReader {
 		if (img) { buf = img.toData(this.pos.x, this.pos.y, this.pos.width, this.pos.height); }
 		else { buf = a1lib.capture(this.pos.x, this.pos.y, this.pos.width, this.pos.height); }
 
-		let quantitymatch = OCR.findReadLine(buf, font, [[143, 172, 187]], this.pos.width - 100, 12, 70, 1);
+		let quantitymatch = OCR.findReadLine(buf, font, [titlecolor], this.pos.width - 100, 12, 70, 1);
 		if (quantitymatch.text != "Quantity") { return null; }
 		var right = quantitymatch.debugArea.x;
 
